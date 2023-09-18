@@ -1,22 +1,20 @@
-FROM komljen/php-apache
-MAINTAINER Alen Komljen <alen.komljen@live.com>
+# Use the official PHP 8.0 image as the base
+FROM php:8.0-apache
 
-ENV WP_PASS aeshiethooghahtu4Riebooquae6Ithe
-ENV WP_USER wordpress
-ENV WP_DB wordpress
-ENV APP_ROOT /var/www/html
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    unzip \
+    && docker-php-ext-install zip pdo_mysql
 
-ADD http://wordpress.org/latest.tar.gz wordpress.tar.gz
+# Enable Apache rewrite module
+RUN a2enmod rewrite
 
-RUN \
-  tar xzf wordpress.tar.gz -C ${APP_ROOT} --strip-components 1 && \
-  rm wordpress.tar.gz
+# Set the document root to Laravel's public directory
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
-COPY start.sh start.sh
+# Copy the application files to the container
+COPY . /var/www/html
 
-VOLUME ["$APP_ROOT"]
-
-RUN rm /usr/sbin/policy-rc.d
-CMD ["/start.sh"]
-
-EXPOSE 80
+# Set the working directory
+WORKDIR /var/www/html
